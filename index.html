@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +15,7 @@ header{background:#111;padding:18px;display:flex;justify-content:space-between;a
 nav{display:flex;gap:20px;overflow:auto;padding:14px;background:#171717}
 nav a{color:white;text-decoration:none;white-space:nowrap}
 .hero{text-align:center;padding:65px 18px;background:linear-gradient(140deg,#171717,#30240c)}
-.hero h1{font-size:38px;color:#e2bd60;margin:0 0 15px}
+.hero h1{font-size:38px;color:#e2bd60}
 .hero p{color:#ddd;line-height:1.6}
 .btn{display:inline-block;background:#d6ad46;color:#080808;padding:13px 24px;border:0;border-radius:5px;font-weight:bold;text-decoration:none;margin-top:12px;cursor:pointer}
 button:disabled{opacity:.6;cursor:not-allowed}
@@ -32,8 +31,7 @@ h2{color:#d6ad46}
 #cartBox{display:none;background:#171717;padding:20px;border:1px solid #d6ad46;margin:15px;border-radius:10px}
 .cart-item{border-bottom:1px solid #604c20;padding:12px 0}
 .cart-item button{padding:7px 12px;margin:3px;cursor:pointer}
-.studio{background:#171717;border:1px solid #d6ad46;padding:22px;border-radius:10px;text-align:center}
-.payment-box{background:#171717;padding:20px;text-align:center;border:1px solid #d6ad46;border-radius:10px}
+.studio,.payment-box{background:#171717;border:1px solid #d6ad46;padding:22px;border-radius:10px;text-align:center}
 .status{padding:12px;margin-top:15px;border-radius:6px;display:none;line-height:1.5;overflow-wrap:anywhere}
 footer{text-align:center;padding:25px;background:#151515;color:#aaa;line-height:1.8}
 footer a,section a{color:#d6ad46}
@@ -43,7 +41,6 @@ footer a,section a{color:#d6ad46}
 }
 </style>
 </head>
-
 <body>
 
 <header>
@@ -57,11 +54,9 @@ footer a,section a{color:#d6ad46}
 <h2>🛒 My Shopping Cart</h2>
 <div id="cartItems">Your cart is empty.</div>
 <h3>Total: ₹<span id="total">0</span></h3>
-
 <button class="btn" id="payButton" onclick="payNow()">Pay Now</button>
 <button class="btn" onclick="checkout()">Order on WhatsApp</button>
 <button class="btn" onclick="toggleCart()">Continue Shopping</button>
-
 <div id="paymentStatus" class="status"></div>
 </div>
 
@@ -102,29 +97,29 @@ Welcome to DIYAN Custom Store.</p>
 <div class="product">
 <div class="photo">👕</div>
 <h3>Custom T-Shirt</h3>
-<p class="price">Starting ₹299</p>
-<button onclick="addCart('Custom T-Shirt',299)">Add to Cart</button>
+<p class="price" id="price-tshirt">Starting ₹299</p>
+<button onclick="addCart('Custom T-Shirt')">Add to Cart</button>
 </div>
 
 <div class="product">
 <div class="photo">🧥</div>
 <h3>Custom Hoodie</h3>
-<p class="price">Starting ₹599</p>
-<button onclick="addCart('Custom Hoodie',599)">Add to Cart</button>
+<p class="price" id="price-hoodie">Starting ₹599</p>
+<button onclick="addCart('Custom Hoodie')">Add to Cart</button>
 </div>
 
 <div class="product">
 <div class="photo">🧢</div>
 <h3>Custom Cap</h3>
-<p class="price">Starting ₹199</p>
-<button onclick="addCart('Custom Cap',199)">Add to Cart</button>
+<p class="price" id="price-cap">Starting ₹199</p>
+<button onclick="addCart('Custom Cap')">Add to Cart</button>
 </div>
 
 <div class="product">
 <div class="photo">👜</div>
 <h3>Custom Bag</h3>
-<p class="price">Starting ₹249</p>
-<button onclick="addCart('Custom Bag',249)">Add to Cart</button>
+<p class="price" id="price-bag">Starting ₹249</p>
+<button onclick="addCart('Custom Bag')">Add to Cart</button>
 </div>
 
 </div>
@@ -180,10 +175,19 @@ const ORDERS_KEY = "diyan_orders";
 let cart = [];
 let paymentInProgress = false;
 
+let productPrices = {
+  "Custom T-Shirt":299,
+  "Custom Hoodie":599,
+  "Custom Cap":199,
+  "Custom Bag":249
+};
+
 // Load saved cart
 function loadCart(){
   try{
-    const saved = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+    const saved = JSON.parse(
+      localStorage.getItem(CART_KEY) || "[]"
+    );
 
     if(Array.isArray(saved)){
       cart = saved.filter(item =>
@@ -206,14 +210,10 @@ function loadCart(){
 
 // Save cart
 function saveCart(){
-  try{
-    localStorage.setItem(CART_KEY,JSON.stringify(cart));
-  }catch(error){
-    console.error("Cart save failed",error);
-  }
+  localStorage.setItem(CART_KEY,JSON.stringify(cart));
 }
 
-// Save an order locally
+// Save local order record
 function saveOrder(order){
   try{
     const orders = JSON.parse(
@@ -224,20 +224,70 @@ function saveOrder(order){
 
     if(!orders.some(item => item.id === order.id)){
       orders.unshift(order);
-      localStorage.setItem(ORDERS_KEY,JSON.stringify(orders));
+      localStorage.setItem(
+        ORDERS_KEY,
+        JSON.stringify(orders)
+      );
     }
   }catch(error){
     console.error("Order save failed",error);
   }
 }
 
-// Cart open/close - fixed
+// Load current prices from Worker
+async function loadProducts(){
+  try{
+    const response = await fetch(
+      PAYMENT_SERVER + "/products"
+    );
+
+    if(!response.ok) return;
+
+    const data = await response.json();
+
+    if(!Array.isArray(data.products)) return;
+
+    data.products.forEach(product=>{
+      if(
+        product.name in productPrices &&
+        Number.isSafeInteger(Number(product.price)) &&
+        Number(product.price)>0
+      ){
+        productPrices[product.name] = Number(product.price);
+      }
+    });
+
+    document.getElementById("price-tshirt").textContent =
+      "Starting ₹" + productPrices["Custom T-Shirt"];
+
+    document.getElementById("price-hoodie").textContent =
+      "Starting ₹" + productPrices["Custom Hoodie"];
+
+    document.getElementById("price-cap").textContent =
+      "Starting ₹" + productPrices["Custom Cap"];
+
+    document.getElementById("price-bag").textContent =
+      "Starting ₹" + productPrices["Custom Bag"];
+
+    cart.forEach(item=>{
+      if(productPrices[item.name]){
+        item.price = productPrices[item.name];
+      }
+    });
+
+    renderCart();
+
+  }catch(error){
+    console.error("Product loading failed",error);
+  }
+}
+
+// Cart open/close
 function toggleCart(){
   const box = document.getElementById("cartBox");
   const hidden = getComputedStyle(box).display === "none";
 
   box.style.display = hidden ? "block" : "none";
-
   renderCart();
 
   if(hidden){
@@ -253,7 +303,14 @@ function openCartAndPay(){
 }
 
 // Add product
-function addCart(name,price){
+function addCart(name){
+  const price = productPrices[name];
+
+  if(!price){
+    alert("Product price not available. Please refresh.");
+    return;
+  }
+
   let item = cart.find(p => p.name === name);
 
   if(item){
@@ -264,6 +321,17 @@ function addCart(name,price){
 
   renderCart();
   alert(name + " added to cart!");
+}
+
+// Safe HTML
+function escapeHTML(value){
+  return String(value).replace(/[&<>"']/g,char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[char]);
 }
 
 // Render cart
@@ -280,7 +348,7 @@ function renderCart(){
     html += `
       <div class="cart-item">
         <b>${escapeHTML(item.name)}</b>
-        <p>₹${subtotal/item.qty} × ${item.qty} = ₹${subtotal}</p>
+        <p>₹${item.price} × ${item.qty} = ₹${subtotal}</p>
         <button onclick="changeQty(${index},-1)">−</button>
         ${item.qty}
         <button onclick="changeQty(${index},1)">+</button>
@@ -298,16 +366,6 @@ function renderCart(){
   document.getElementById("count").textContent = count;
 
   saveCart();
-}
-
-function escapeHTML(value){
-  return String(value).replace(/[&<>"']/g,char => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#39;"
-  })[char]);
 }
 
 // Quantity
@@ -337,7 +395,6 @@ function showStatus(message,success){
   box.textContent = message;
 }
 
-// Reset payment button
 function resetPayButton(){
   paymentInProgress = false;
   const button = document.getElementById("payButton");
@@ -366,8 +423,7 @@ async function payNow(){
   button.disabled = true;
   button.textContent = "Please wait...";
 
-  // Keep a snapshot of items being purchased
-  const purchasedItems = cart.map(item => ({...item}));
+  const purchasedItems = cart.map(item=>({...item}));
 
   try{
     const response = await fetch(
@@ -388,12 +444,13 @@ async function payNow(){
 
     if(!response.ok || !order.success){
       throw new Error(
-        order.details || order.error || "Order creation failed"
+        order.message || order.error || "Order creation failed"
       );
     }
 
+    // IMPORTANT: Worker returns order.key
     const options = {
-      key:order.key_id,
+      key:order.key,
       amount:order.amount,
       currency:order.currency,
       name:"DIYAN",
@@ -401,6 +458,7 @@ async function payNow(){
       order_id:order.order_id,
 
       handler:async function(payment){
+
         showStatus("Verifying your payment...",true);
 
         try{
@@ -422,21 +480,19 @@ async function payNow(){
           }
 
           // Save order before clearing cart
-          const savedOrder = {
+          saveOrder({
             id:payment.razorpay_order_id,
             paymentId:payment.razorpay_payment_id,
             items:purchasedItems,
             total:order.amount / 100,
             status:"Payment Verified",
             date:new Date().toISOString()
-          };
+          });
 
-          saveOrder(savedOrder);
-
-          // Remove only purchased quantities
+          // Remove purchased quantities only
           purchasedItems.forEach(purchased=>{
             const current = cart.find(
-              item => item.name === purchased.name
+              item=>item.name === purchased.name
             );
 
             if(current){
@@ -444,7 +500,7 @@ async function payNow(){
 
               if(current.qty <= 0){
                 cart = cart.filter(
-                  item => item.name !== purchased.name
+                  item=>item.name !== purchased.name
                 );
               }
             }
@@ -453,7 +509,7 @@ async function payNow(){
           renderCart();
 
           showStatus(
-            "Payment successful! Your order has been saved. Payment ID: " +
+            "Payment successful! Order saved. Payment ID: " +
             payment.razorpay_payment_id,
             true
           );
@@ -474,8 +530,9 @@ async function payNow(){
           );
 
         }catch(error){
+
           showStatus(
-            "Payment received but verification or saving needs checking. Do not pay again. Payment ID: " +
+            "Payment may have been received, but verification needs checking. Do not pay again. Payment ID: " +
             payment.razorpay_payment_id +
             ". Please contact DIYAN.",
             false
@@ -495,9 +552,7 @@ async function payNow(){
         }
       },
 
-      theme:{
-        color:"#d6ad46"
-      }
+      theme:{color:"#d6ad46"}
     };
 
     const razorpay = new Razorpay(options);
@@ -541,7 +596,6 @@ function checkout(){
   message += "\nTotal: Rs. " + total;
   message += "\nPlease confirm my order.";
 
-  // Save a pending WhatsApp order locally
   saveOrder({
     id:"WA-" + Date.now(),
     items:cart.map(item=>({...item})),
@@ -557,9 +611,10 @@ function checkout(){
   );
 }
 
-// Restore saved cart on page load
+// Start website
 loadCart();
 renderCart();
+loadProducts();
 
 </script>
 </body>
