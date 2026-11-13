@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DIYAN Admin Panel</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080808;color:white;font-family:Arial;padding:18px}
+h1,h2{color:#d6ad46}
+.box{background:#171717;border:1px solid #80652a;border-radius:10px;padding:18px;margin:15px 0}
+input{width:100%;padding:13px;margin:8px 0;background:#222;color:white;border:1px solid #80652a;border-radius:5px}
+button{padding:12px 17px;background:#d6ad46;color:#080808;border:0;border-radius:5px;font-weight:bold;margin:5px;cursor:pointer}
+.order{border-bottom:1px solid #665124;padding:13px 0;overflow-wrap:anywhere}
+.small{color:#bbb;font-size:13px}
+#message{padding:12px;display:none;border-radius:5px}
+</style>
+</head>
+<body>
+
+<h1>DIYAN ADMIN</h1>
+<p>Secure Store Management</p>
+
+<div class="box">
+<h2>Admin Login</h2>
+<input type="password" id="token" placeholder="Enter ADMIN_TOKEN">
+<button onclick="login()">Login</button>
+<button onclick="logout()">Logout</button>
+</div>
+
+<div id="dashboard" style="display:none">
+
+<div class="box">
+<h2>Product Price Manager</h2>
+
+<label>Product</label>
+<select id="product" style="width:100%;padding:12px;background:#222;color:white">
+<option>Custom T-Shirt</option>
+<option>Custom Hoodie</option>
+<option>Custom Cap</option>
+<option>Custom Bag</option>
+</select>
+
+<label>New Price (₹)</label>
+<input type="number" id="price" placeholder="Enter new price">
+<button onclick="updatePrice()">Update Price</button>
+</div>
+
+<div class="box">
+<h2>All Orders</h2>
+<button onclick="loadOrders()">Refresh Orders</button>
+<div id="orders">Please load orders.</div>
+</div>
+
+</div>
+
+<div id="message"></div>
+
+<script>
+const SERVER =
+"https://diyan-payment-01.dilkhushlalsot7742.workers.dev";
+
+let adminToken = "";
+
+function showMessage(message,success){
+  const box = document.getElementById("message");
+  box.style.display = "block";
+  box.style.background = success ? "#164322" : "#512020";
+  box.textContent = message;
+}
+
+function login(){
+  const value = document.getElementById("token").value.trim();
+
+  if(!value){
+    showMessage("Please enter ADMIN_TOKEN",false);
+    return;
+  }
+
+  adminToken = value;
+  document.getElementById("dashboard").style.display = "block";
+  loadOrders();
+}
+
+function logout(){
+  adminToken = "";
+  document.getElementById("token").value = "";
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("orders").textContent = "Logged out";
+  showMessage("Logged out successfully",true);
+}
+
+async function updatePrice(){
+  if(!adminToken) return;
+
+  const name = document.getElementById("product").value;
+  const price = Number(document.getElementById("price").value);
+
+  if(!Number.isSafeInteger(price) || price < 1 || price > 100000){
+    showMessage("Enter a valid price",false);
+    return;
+  }
+
+  try{
+    const response = await fetch(SERVER + "/admin/product",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + adminToken
+      },
+      body:JSON.stringify({name,price})
+    });
+
+    const data = await response.json();
+
+    if(!response.ok) throw new Error(data.error || "Update failed");
+
+    showMessage("Price updated successfully!",true);
+    document.getElementById("price").value = "";
+
+  }catch(error){
+    showMessage(error.message,false);
+  }
+}
+
+async function loadOrders(){
+  if(!adminToken) return;
+
+  const box = document.getElementById("orders");
+  box.textContent = "Loading orders...";
+
+  try{
+    const response = await fetch(SERVER + "/admin/orders",{
+      headers:{
+        "Authorization":"Bearer " + adminToken
+      }
+    });
+
+    const data = await response.json();
+
+    if(!response.ok) throw new Error(data.error || "Cannot load orders");
+
+    if(!Array.isArray(data.orders) || !data.orders.length){
+      box.textContent = "No orders found.";
+      return;
+    }
+
+    box.innerHTML = "";
+
+    data.orders.forEach(order=>{
+      const item = document.createElement("div");
+      item.className = "order";
+
+      const fields = [
+        ["Order ID",order.id],
+        ["Payment ID",order.payment_id],
+        ["Amount","₹" + order.amount],
+        ["Status",order.status],
+        ["Date",order.created_at]
+      ];
+
+      fields.forEach(([label,value])=>{
+        const line = document.createElement("p");
+        line.textContent = label + ": " + (value ?? "-");
+        item.appendChild(line);
+      });
+
+      box.appendChild(item);
+    });
+
+  }catch(error){
+    box.textContent = error.message;
+    showMessage(error.message,false);
+  }
+}
+</script>
+</body>
+</html>
