@@ -167,15 +167,13 @@ footer a{color:#d6ad46}
   © 2026 DIYAN. All Rights Reserved.<br>
   Your Style, Your Design, Your DIYAN.
 </footer>
-script>
+
+<script>
 let cart = [];
 
 function toggleCart(){
   const box = document.getElementById("cartBox");
-
-  box.style.display =
-    box.style.display === "none" ? "block" : "none";
-
+  box.style.display = box.style.display === "none" ? "block" : "none";
   renderCart();
 
   if(box.style.display === "block"){
@@ -188,12 +186,8 @@ function addCart(name,price){
 
   if(item){
     item.qty++;
-  }else{
-    cart.push({
-      name:name,
-      price:price,
-      qty:1
-    });
+  } else {
+    cart.push({name,price,qty:1});
   }
 
   renderCart();
@@ -214,13 +208,11 @@ function renderCart(){
       <div class="cart-item">
         <b>${item.name}</b>
         <p>₹${item.price} × ${item.qty} = ₹${subtotal}</p>
-
         <button onclick="changeQty(${index},-1)">−</button>
         ${item.qty}
         <button onclick="changeQty(${index},1)">+</button>
-
         <button onclick="removeItem(${index})"
-        style="background:#b52b2b;color:white;border:0">
+          style="background:#b52b2b;color:white;border:0">
           Remove
         </button>
       </div>
@@ -259,18 +251,35 @@ function checkout(){
   let total = 0;
 
   cart.forEach(item=>{
-    message += item.name +
-      " x " + item.qty +
-      " = Rs. " + (item.price * item.qty) + "\n";
-
-    total += item.price * item.qty;
+    let subtotal = item.price * item.qty;
+    message += item.name + " x " + item.qty +
+      " = Rs. " + subtotal + "\n";
+    total += subtotal;
   });
 
   message += "\nTotal: Rs. " + total;
   message += "\nPlease confirm my order.";
 
   let url = "https://wa.me/918000138852?text=" +
-    
+    encodeURIComponent(message);
+
+  window.open(url,"_blank");
+}
+
+function copyUPI(){
+  const upi = "7891306081-2@okbizaxis";
+
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(upi)
+      .then(()=>alert("UPI ID copied!"))
+      .catch(()=>prompt("Copy UPI ID:",upi));
+  } else {
+    prompt("Copy UPI ID:",upi);
+  }
+}
+</script>
 
 </body>
+</html>
+
 </html>
