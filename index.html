@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DIYAN - Custom Shopping Store</title>
-
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <style>
@@ -35,7 +34,7 @@ h2{color:#d6ad46}
 .cart-item button{padding:7px 12px;margin:3px;cursor:pointer}
 .studio{background:#171717;border:1px solid #d6ad46;padding:22px;border-radius:10px;text-align:center}
 .payment-box{background:#171717;padding:20px;text-align:center;border:1px solid #d6ad46;border-radius:10px}
-.status{padding:12px;margin-top:15px;border-radius:6px;display:none;line-height:1.5}
+.status{padding:12px;margin-top:15px;border-radius:6px;display:none;line-height:1.5;overflow-wrap:anywhere}
 footer{text-align:center;padding:25px;background:#151515;color:#aaa;line-height:1.8}
 footer a,section a{color:#d6ad46}
 @media(min-width:700px){
@@ -48,156 +47,200 @@ footer a,section a{color:#d6ad46}
 <body>
 
 <header>
-  <div class="logo">DIYAN</div>
-  <button class="cart" onclick="toggleCart()">
-    🛒 Cart: <span id="count">0</span>
-  </button>
+<div class="logo">DIYAN</div>
+<button class="cart" onclick="toggleCart()">
+🛒 Cart: <span id="count">0</span>
+</button>
 </header>
 
 <div id="cartBox">
-  <h2>🛒 My Shopping Cart</h2>
-  <div id="cartItems">Your cart is empty.</div>
-  <h3>Total: ₹<span id="total">0</span></h3>
+<h2>🛒 My Shopping Cart</h2>
+<div id="cartItems">Your cart is empty.</div>
+<h3>Total: ₹<span id="total">0</span></h3>
 
-  <button class="btn" id="payButton" onclick="payNow()">
-    Pay Now
-  </button>
+<button class="btn" id="payButton" onclick="payNow()">Pay Now</button>
+<button class="btn" onclick="checkout()">Order on WhatsApp</button>
+<button class="btn" onclick="toggleCart()">Continue Shopping</button>
 
-  <button class="btn" onclick="checkout()">
-    Order on WhatsApp
-  </button>
-
-  <button class="btn" onclick="toggleCart()">
-    Continue Shopping
-  </button>
-
-  <div id="paymentStatus" class="status"></div>
+<div id="paymentStatus" class="status"></div>
 </div>
 
 <nav>
-  <a href="#home">Home</a>
-  <a href="#categories">Categories</a>
-  <a href="#products">Products</a>
-  <a href="#studio">Custom Design</a>
-  <a href="#payment">Payment</a>
-  <a href="#contact">Contact</a>
+<a href="#home">Home</a>
+<a href="#categories">Categories</a>
+<a href="#products">Products</a>
+<a href="#studio">Custom Design</a>
+<a href="#payment">Payment</a>
+<a href="#contact">Contact</a>
 </nav>
 
 <div class="hero" id="home">
-  <h1>CREATE YOUR STYLE</h1>
-  <p>Shop Unique Products. Design Your Own Style.<br>
-  Welcome to DIYAN Custom Store.</p>
-  <a class="btn" href="#products">SHOP NOW</a>
+<h1>CREATE YOUR STYLE</h1>
+<p>Shop Unique Products. Design Your Own Style.<br>
+Welcome to DIYAN Custom Store.</p>
+<a class="btn" href="#products">SHOP NOW</a>
 </div>
 
 <section id="categories">
-  <h2>Our Categories</h2>
-  <div class="categories">
-    <div class="category">👕<br>Clothing</div>
-    <div class="category">👟<br>Shoes</div>
-    <div class="category">🍳<br>Kitchen</div>
-    <div class="category">📱<br>Electronics</div>
-    <div class="category">🏠<br>Home Decor</div>
-    <div class="category">🎁<br>Gifts</div>
-    <div class="category">🧢<br>Accessories</div>
-    <div class="category">🖨️<br>Custom DTF</div>
-  </div>
+<h2>Our Categories</h2>
+<div class="categories">
+<div class="category">👕<br>Clothing</div>
+<div class="category">👟<br>Shoes</div>
+<div class="category">🍳<br>Kitchen</div>
+<div class="category">📱<br>Electronics</div>
+<div class="category">🏠<br>Home Decor</div>
+<div class="category">🎁<br>Gifts</div>
+<div class="category">🧢<br>Accessories</div>
+<div class="category">🖨️<br>Custom DTF</div>
+</div>
 </section>
 
 <section id="products">
-  <h2>Popular Products</h2>
-  <div class="products">
+<h2>Popular Products</h2>
+<div class="products">
 
-    <div class="product">
-      <div class="photo">👕</div>
-      <h3>Custom T-Shirt</h3>
-      <p class="price">Starting ₹299</p>
-      <button onclick="addCart('Custom T-Shirt',299)">Add to Cart</button>
-    </div>
+<div class="product">
+<div class="photo">👕</div>
+<h3>Custom T-Shirt</h3>
+<p class="price">Starting ₹299</p>
+<button onclick="addCart('Custom T-Shirt',299)">Add to Cart</button>
+</div>
 
-    <div class="product">
-      <div class="photo">🧥</div>
-      <h3>Custom Hoodie</h3>
-      <p class="price">Starting ₹599</p>
-      <button onclick="addCart('Custom Hoodie',599)">Add to Cart</button>
-    </div>
+<div class="product">
+<div class="photo">🧥</div>
+<h3>Custom Hoodie</h3>
+<p class="price">Starting ₹599</p>
+<button onclick="addCart('Custom Hoodie',599)">Add to Cart</button>
+</div>
 
-    <div class="product">
-      <div class="photo">🧢</div>
-      <h3>Custom Cap</h3>
-      <p class="price">Starting ₹199</p>
-      <button onclick="addCart('Custom Cap',199)">Add to Cart</button>
-    </div>
+<div class="product">
+<div class="photo">🧢</div>
+<h3>Custom Cap</h3>
+<p class="price">Starting ₹199</p>
+<button onclick="addCart('Custom Cap',199)">Add to Cart</button>
+</div>
 
-    <div class="product">
-      <div class="photo">👜</div>
-      <h3>Custom Bag</h3>
-      <p class="price">Starting ₹249</p>
-      <button onclick="addCart('Custom Bag',249)">Add to Cart</button>
-    </div>
+<div class="product">
+<div class="photo">👜</div>
+<h3>Custom Bag</h3>
+<p class="price">Starting ₹249</p>
+<button onclick="addCart('Custom Bag',249)">Add to Cart</button>
+</div>
 
-  </div>
+</div>
 </section>
 
 <section id="studio">
-  <div class="studio">
-    <h2>DIYAN Custom Design Studio</h2>
-    <p>Choose a template or create your own design.</p>
-    <p>Upload your photo, logo or artwork and personalize your product.</p>
-    <p>360° 3D product preview is planned for the next development stage.</p>
-    <a class="btn" href="https://wa.me/918000138852?text=I%20want%20a%20custom%20design">
-      Request Custom Design
-    </a>
-  </div>
+<div class="studio">
+<h2>DIYAN Custom Design Studio</h2>
+<p>Choose a template or create your own design.</p>
+<p>Upload your photo, logo or artwork and personalize your product.</p>
+<p>360° 3D product preview is planned for the next development stage.</p>
+<a class="btn" href="https://wa.me/918000138852?text=I%20want%20a%20custom%20design">
+Request Custom Design</a>
+</div>
 </section>
 
 <section id="payment">
-  <h2>Secure Online Payment</h2>
-  <div class="payment-box">
-    <h3>Pay Securely with DIYAN</h3>
-    <p>UPI | QR Code | Debit Card | Credit Card</p>
-    <p>Choose products, add them to your cart and click Pay Now.</p>
-    <button class="btn" onclick="openCartAndPay()">
-      Go to Shopping Cart
-    </button>
-    <p style="color:#ccc;font-size:13px">
-      Payments are processed securely through Razorpay.
-    </p>
-  </div>
+<h2>Secure Online Payment</h2>
+<div class="payment-box">
+<h3>Pay Securely with DIYAN</h3>
+<p>UPI | QR Code | Debit Card | Credit Card</p>
+<p>Choose products, add them to your cart and click Pay Now.</p>
+<button class="btn" onclick="openCartAndPay()">Go to Shopping Cart</button>
+<p style="color:#ccc;font-size:13px">
+Payments are processed securely through Razorpay.
+</p>
+</div>
 </section>
 
 <section id="contact">
-  <h2>Contact DIYAN</h2>
-  <p>WhatsApp: +91 8000138852</p>
-  <p>Instagram:
-    <a href="https://www.instagram.com/dilkhushkumarsaini52/">Visit Instagram</a>
-  </p>
-  <p>Facebook:
-    <a href="https://www.facebook.com/share/1CwAPGfpAU/">Visit Facebook</a>
-  </p>
-  <p>YouTube:
-    <a href="https://youtube.com/shorts/HYZv7DKottA?si=4hoVmbj6nIlXiazh">Watch YouTube</a>
-  </p>
+<h2>Contact DIYAN</h2>
+<p>WhatsApp: +91 8000138852</p>
+<p>Instagram:
+<a href="https://www.instagram.com/dilkhushkumarsaini52/">Visit Instagram</a></p>
+<p>Facebook:
+<a href="https://www.facebook.com/share/1CwAPGfpAU/">Visit Facebook</a></p>
+<p>YouTube:
+<a href="https://youtube.com/shorts/HYZv7DKottA?si=4hoVmbj6nIlXiazh">Watch YouTube</a></p>
 </section>
 
 <footer>
-  © 2026 DIYAN. All Rights Reserved.<br>
-  Your Style, Your Design, Your DIYAN.
+© 2026 DIYAN. All Rights Reserved.<br>
+Your Style, Your Design, Your DIYAN.
 </footer>
 
 <script>
 const PAYMENT_SERVER =
 "https://diyan-payment-01.dilkhushlalsot7742.workers.dev";
 
-let cart = [];
+const CART_KEY = "diyan_cart";
+const ORDERS_KEY = "diyan_orders";
 
+let cart = [];
+let paymentInProgress = false;
+
+// Load saved cart
+function loadCart(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+
+    if(Array.isArray(saved)){
+      cart = saved.filter(item =>
+        item &&
+        typeof item.name === "string" &&
+        Number.isFinite(Number(item.price)) &&
+        Number(item.price) > 0 &&
+        Number.isInteger(Number(item.qty)) &&
+        Number(item.qty) > 0
+      ).map(item => ({
+        name:item.name,
+        price:Number(item.price),
+        qty:Number(item.qty)
+      }));
+    }
+  }catch(error){
+    cart = [];
+  }
+}
+
+// Save cart
+function saveCart(){
+  try{
+    localStorage.setItem(CART_KEY,JSON.stringify(cart));
+  }catch(error){
+    console.error("Cart save failed",error);
+  }
+}
+
+// Save an order locally
+function saveOrder(order){
+  try{
+    const orders = JSON.parse(
+      localStorage.getItem(ORDERS_KEY) || "[]"
+    );
+
+    if(!Array.isArray(orders)) return;
+
+    if(!orders.some(item => item.id === order.id)){
+      orders.unshift(order);
+      localStorage.setItem(ORDERS_KEY,JSON.stringify(orders));
+    }
+  }catch(error){
+    console.error("Order save failed",error);
+  }
+}
+
+// Cart open/close - fixed
 function toggleCart(){
   const box = document.getElementById("cartBox");
-  box.style.display =
-    box.style.display === "none" ? "block" : "none";
+  const hidden = getComputedStyle(box).display === "none";
+
+  box.style.display = hidden ? "block" : "none";
+
   renderCart();
 
-  if(box.style.display === "block"){
+  if(hidden){
     box.scrollIntoView({behavior:"smooth"});
   }
 }
@@ -209,6 +252,7 @@ function openCartAndPay(){
   box.scrollIntoView({behavior:"smooth"});
 }
 
+// Add product
 function addCart(name,price){
   let item = cart.find(p => p.name === name);
 
@@ -222,27 +266,27 @@ function addCart(name,price){
   alert(name + " added to cart!");
 }
 
+// Render cart
 function renderCart(){
   let html = "";
   let total = 0;
   let count = 0;
 
   cart.forEach((item,index)=>{
-    let subtotal = item.price * item.qty;
+    const subtotal = item.price * item.qty;
     total += subtotal;
     count += item.qty;
 
     html += `
       <div class="cart-item">
-        <b>${item.name}</b>
-        <p>₹${item.price} × ${item.qty} = ₹${subtotal}</p>
+        <b>${escapeHTML(item.name)}</b>
+        <p>₹${subtotal/item.qty} × ${item.qty} = ₹${subtotal}</p>
         <button onclick="changeQty(${index},-1)">−</button>
         ${item.qty}
         <button onclick="changeQty(${index},1)">+</button>
         <button onclick="removeItem(${index})"
-          style="background:#b52b2b;color:white;border:0">
-          Remove
-        </button>
+        style="background:#b52b2b;color:white;border:0">
+        Remove</button>
       </div>
     `;
   });
@@ -252,9 +296,24 @@ function renderCart(){
 
   document.getElementById("total").textContent = total;
   document.getElementById("count").textContent = count;
+
+  saveCart();
 }
 
+function escapeHTML(value){
+  return String(value).replace(/[&<>"']/g,char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[char]);
+}
+
+// Quantity
 function changeQty(index,amount){
+  if(!cart[index]) return;
+
   cart[index].qty += amount;
 
   if(cart[index].qty <= 0){
@@ -269,6 +328,7 @@ function removeItem(index){
   renderCart();
 }
 
+// Payment status
 function showStatus(message,success){
   const box = document.getElementById("paymentStatus");
   box.style.display = "block";
@@ -277,20 +337,37 @@ function showStatus(message,success){
   box.textContent = message;
 }
 
+// Reset payment button
+function resetPayButton(){
+  paymentInProgress = false;
+  const button = document.getElementById("payButton");
+  button.disabled = false;
+  button.textContent = "Pay Now";
+}
+
+// Payment
 async function payNow(){
+
+  if(paymentInProgress) return;
+
   if(cart.length === 0){
     alert("Your cart is empty!");
     return;
   }
 
   if(typeof Razorpay === "undefined"){
-    alert("Payment system is not loading. Please refresh the page.");
+    alert("Payment system is not loading. Please refresh.");
     return;
   }
+
+  paymentInProgress = true;
 
   const button = document.getElementById("payButton");
   button.disabled = true;
   button.textContent = "Please wait...";
+
+  // Keep a snapshot of items being purchased
+  const purchasedItems = cart.map(item => ({...item}));
 
   try{
     const response = await fetch(
@@ -299,7 +376,7 @@ async function payNow(){
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
-          items:cart.map(item=>({
+          items:purchasedItems.map(item=>({
             name:item.name,
             qty:item.qty
           }))
@@ -310,7 +387,9 @@ async function payNow(){
     const order = await response.json();
 
     if(!response.ok || !order.success){
-      throw new Error(order.details || order.error || "Order creation failed");
+      throw new Error(
+        order.details || order.error || "Order creation failed"
+      );
     }
 
     const options = {
@@ -337,43 +416,82 @@ async function payNow(){
           const result = await verifyResponse.json();
 
           if(!verifyResponse.ok || !result.verified){
-            throw new Error(result.error || "Verification failed");
+            throw new Error(
+              result.error || "Verification failed"
+            );
           }
 
-          const orderMessage =
-            "Hello DIYAN! My payment was successful.\n" +
-            "Payment ID: " + payment.razorpay_payment_id +
-            "\nOrder ID: " + payment.razorpay_order_id;
+          // Save order before clearing cart
+          const savedOrder = {
+            id:payment.razorpay_order_id,
+            paymentId:payment.razorpay_payment_id,
+            items:purchasedItems,
+            total:order.amount / 100,
+            status:"Payment Verified",
+            date:new Date().toISOString()
+          };
 
-          cart = [];
+          saveOrder(savedOrder);
+
+          // Remove only purchased quantities
+          purchasedItems.forEach(purchased=>{
+            const current = cart.find(
+              item => item.name === purchased.name
+            );
+
+            if(current){
+              current.qty -= purchased.qty;
+
+              if(current.qty <= 0){
+                cart = cart.filter(
+                  item => item.name !== purchased.name
+                );
+              }
+            }
+          });
+
           renderCart();
 
           showStatus(
-            "Payment successful! Your payment has been verified. Payment ID: " +
+            "Payment successful! Your order has been saved. Payment ID: " +
             payment.razorpay_payment_id,
             true
           );
 
+          resetPayButton();
+
           alert("Thank you! Your DIYAN payment is successful.");
+
+          const message =
+            "Hello DIYAN! My payment was successful.\n" +
+            "Payment ID: " + payment.razorpay_payment_id +
+            "\nOrder ID: " + payment.razorpay_order_id;
 
           window.open(
             "https://wa.me/918000138852?text=" +
-            encodeURIComponent(orderMessage),
+            encodeURIComponent(message),
             "_blank"
           );
 
         }catch(error){
           showStatus(
-            "Payment received, but verification needs checking. Please contact DIYAN with your Payment ID: " +
-            payment.razorpay_payment_id,
+            "Payment received but verification or saving needs checking. Do not pay again. Payment ID: " +
+            payment.razorpay_payment_id +
+            ". Please contact DIYAN.",
             false
           );
+
+          resetPayButton();
         }
       },
 
       modal:{
         ondismiss:function(){
-          showStatus("Payment window closed. Your cart is saved.",false);
+          showStatus(
+            "Payment window closed. Your cart is saved.",
+            false
+          );
+          resetPayButton();
         }
       },
 
@@ -390,18 +508,18 @@ async function payNow(){
         (response.error.description || "Please try again."),
         false
       );
+      resetPayButton();
     });
 
     razorpay.open();
 
   }catch(error){
     showStatus("Error: " + error.message,false);
-  }finally{
-    button.disabled = false;
-    button.textContent = "Pay Now";
+    resetPayButton();
   }
 }
 
+// WhatsApp order
 function checkout(){
   if(cart.length === 0){
     alert("Your cart is empty!");
@@ -412,14 +530,25 @@ function checkout(){
   let total = 0;
 
   cart.forEach(item=>{
-    let subtotal = item.price * item.qty;
+    const subtotal = item.price * item.qty;
+
     message += item.name + " x " + item.qty +
       " = Rs. " + subtotal + "\n";
+
     total += subtotal;
   });
 
   message += "\nTotal: Rs. " + total;
   message += "\nPlease confirm my order.";
+
+  // Save a pending WhatsApp order locally
+  saveOrder({
+    id:"WA-" + Date.now(),
+    items:cart.map(item=>({...item})),
+    total:total,
+    status:"WhatsApp Order - Pending Confirmation",
+    date:new Date().toISOString()
+  });
 
   window.open(
     "https://wa.me/918000138852?text=" +
@@ -427,7 +556,11 @@ function checkout(){
     "_blank"
   );
 }
-</script>
 
+// Restore saved cart on page load
+loadCart();
+renderCart();
+
+</script>
 </body>
 </html>
