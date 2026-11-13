@@ -1,9 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DIYAN - Custom Shopping Store</title>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <style>
 *{box-sizing:border-box}
@@ -17,6 +20,7 @@ nav a{color:white;text-decoration:none;white-space:nowrap}
 .hero h1{font-size:38px;color:#e2bd60;margin:0 0 15px}
 .hero p{color:#ddd;line-height:1.6}
 .btn{display:inline-block;background:#d6ad46;color:#080808;padding:13px 24px;border:0;border-radius:5px;font-weight:bold;text-decoration:none;margin-top:12px;cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed}
 section{padding:25px 16px}
 h2{color:#d6ad46}
 .categories,.products{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
@@ -30,8 +34,10 @@ h2{color:#d6ad46}
 .cart-item{border-bottom:1px solid #604c20;padding:12px 0}
 .cart-item button{padding:7px 12px;margin:3px;cursor:pointer}
 .studio{background:#171717;border:1px solid #d6ad46;padding:22px;border-radius:10px;text-align:center}
+.payment-box{background:#171717;padding:20px;text-align:center;border:1px solid #d6ad46;border-radius:10px}
+.status{padding:12px;margin-top:15px;border-radius:6px;display:none;line-height:1.5}
 footer{text-align:center;padding:25px;background:#151515;color:#aaa;line-height:1.8}
-footer a{color:#d6ad46}
+footer a,section a{color:#d6ad46}
 @media(min-width:700px){
 .categories,.products{grid-template-columns:repeat(4,1fr)}
 .hero{padding:90px}
@@ -48,13 +54,24 @@ footer a{color:#d6ad46}
   </button>
 </header>
 
-<!-- CART SECTION -->
 <div id="cartBox">
   <h2>🛒 My Shopping Cart</h2>
   <div id="cartItems">Your cart is empty.</div>
   <h3>Total: ₹<span id="total">0</span></h3>
-  <button onclick="checkout()" class="btn">Order on WhatsApp</button>
-  <button onclick="toggleCart()" class="btn">Continue Shopping</button>
+
+  <button class="btn" id="payButton" onclick="payNow()">
+    Pay Now
+  </button>
+
+  <button class="btn" onclick="checkout()">
+    Order on WhatsApp
+  </button>
+
+  <button class="btn" onclick="toggleCart()">
+    Continue Shopping
+  </button>
+
+  <div id="paymentStatus" class="status"></div>
 </div>
 
 <nav>
@@ -135,17 +152,17 @@ footer a{color:#d6ad46}
 </section>
 
 <section id="payment">
-  <h2>UPI Payment</h2>
-  <div style="background:#171717;padding:20px;text-align:center;border:1px solid #d6ad46;border-radius:10px">
-    <h3>Pay to DIYAN</h3>
-    <img
-      src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi%3A%2F%2Fpay%3Fpa%3D7891306081-2%40okbizaxis%26pn%3DDilkhush%2520Kumar%2520Saini%26cu%3DINR"
-      width="220" alt="UPI QR Code">
-
-    <p>UPI ID: 7891306081-2@okbizaxis</p>
-
-    <button class="btn" onclick="copyUPI()">Copy UPI ID</button>
-    <p style="color:#ccc">Payment ke baad screenshot WhatsApp par bhejein.</p>
+  <h2>Secure Online Payment</h2>
+  <div class="payment-box">
+    <h3>Pay Securely with DIYAN</h3>
+    <p>UPI | QR Code | Debit Card | Credit Card</p>
+    <p>Choose products, add them to your cart and click Pay Now.</p>
+    <button class="btn" onclick="openCartAndPay()">
+      Go to Shopping Cart
+    </button>
+    <p style="color:#ccc;font-size:13px">
+      Payments are processed securely through Razorpay.
+    </p>
   </div>
 </section>
 
@@ -169,11 +186,15 @@ footer a{color:#d6ad46}
 </footer>
 
 <script>
+const PAYMENT_SERVER =
+"https://diyan-payment-01.dilkhushlalsot7742.workers.dev";
+
 let cart = [];
 
 function toggleCart(){
   const box = document.getElementById("cartBox");
-  box.style.display = box.style.display === "none" ? "block" : "none";
+  box.style.display =
+    box.style.display === "none" ? "block" : "none";
   renderCart();
 
   if(box.style.display === "block"){
@@ -181,12 +202,19 @@ function toggleCart(){
   }
 }
 
+function openCartAndPay(){
+  const box = document.getElementById("cartBox");
+  box.style.display = "block";
+  renderCart();
+  box.scrollIntoView({behavior:"smooth"});
+}
+
 function addCart(name,price){
   let item = cart.find(p => p.name === name);
 
   if(item){
     item.qty++;
-  } else {
+  }else{
     cart.push({name,price,qty:1});
   }
 
@@ -241,6 +269,139 @@ function removeItem(index){
   renderCart();
 }
 
+function showStatus(message,success){
+  const box = document.getElementById("paymentStatus");
+  box.style.display = "block";
+  box.style.background = success ? "#163d22" : "#492020";
+  box.style.color = "white";
+  box.textContent = message;
+}
+
+async function payNow(){
+  if(cart.length === 0){
+    alert("Your cart is empty!");
+    return;
+  }
+
+  if(typeof Razorpay === "undefined"){
+    alert("Payment system is not loading. Please refresh the page.");
+    return;
+  }
+
+  const button = document.getElementById("payButton");
+  button.disabled = true;
+  button.textContent = "Please wait...";
+
+  try{
+    const response = await fetch(
+      PAYMENT_SERVER + "/create-order",
+      {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          items:cart.map(item=>({
+            name:item.name,
+            qty:item.qty
+          }))
+        })
+      }
+    );
+
+    const order = await response.json();
+
+    if(!response.ok || !order.success){
+      throw new Error(order.details || order.error || "Order creation failed");
+    }
+
+    const options = {
+      key:order.key_id,
+      amount:order.amount,
+      currency:order.currency,
+      name:"DIYAN",
+      description:"DIYAN Shopping Order",
+      order_id:order.order_id,
+
+      handler:async function(payment){
+        showStatus("Verifying your payment...",true);
+
+        try{
+          const verifyResponse = await fetch(
+            PAYMENT_SERVER + "/verify-payment",
+            {
+              method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body:JSON.stringify(payment)
+            }
+          );
+
+          const result = await verifyResponse.json();
+
+          if(!verifyResponse.ok || !result.verified){
+            throw new Error(result.error || "Verification failed");
+          }
+
+          const orderMessage =
+            "Hello DIYAN! My payment was successful.\n" +
+            "Payment ID: " + payment.razorpay_payment_id +
+            "\nOrder ID: " + payment.razorpay_order_id;
+
+          cart = [];
+          renderCart();
+
+          showStatus(
+            "Payment successful! Your payment has been verified. Payment ID: " +
+            payment.razorpay_payment_id,
+            true
+          );
+
+          alert("Thank you! Your DIYAN payment is successful.");
+
+          window.open(
+            "https://wa.me/918000138852?text=" +
+            encodeURIComponent(orderMessage),
+            "_blank"
+          );
+
+        }catch(error){
+          showStatus(
+            "Payment received, but verification needs checking. Please contact DIYAN with your Payment ID: " +
+            payment.razorpay_payment_id,
+            false
+          );
+        }
+      },
+
+      modal:{
+        ondismiss:function(){
+          showStatus("Payment window closed. Your cart is saved.",false);
+        }
+      },
+
+      theme:{
+        color:"#d6ad46"
+      }
+    };
+
+    const razorpay = new Razorpay(options);
+
+    razorpay.on("payment.failed",function(response){
+      showStatus(
+        "Payment failed: " +
+        (response.error.description || "Please try again."),
+        false
+      );
+    });
+
+    razorpay.open();
+
+  }catch(error){
+    showStatus("Error: " + error.message,false);
+  }finally{
+    button.disabled = false;
+    button.textContent = "Pay Now";
+  }
+}
+
 function checkout(){
   if(cart.length === 0){
     alert("Your cart is empty!");
@@ -260,22 +421,11 @@ function checkout(){
   message += "\nTotal: Rs. " + total;
   message += "\nPlease confirm my order.";
 
-  let url = "https://wa.me/918000138852?text=" +
-    encodeURIComponent(message);
-
-  window.open(url,"_blank");
-}
-
-function copyUPI(){
-  const upi = "7891306081-2@okbizaxis";
-
-  if(navigator.clipboard && window.isSecureContext){
-    navigator.clipboard.writeText(upi)
-      .then(()=>alert("UPI ID copied!"))
-      .catch(()=>prompt("Copy UPI ID:",upi));
-  } else {
-    prompt("Copy UPI ID:",upi);
-  }
+  window.open(
+    "https://wa.me/918000138852?text=" +
+    encodeURIComponent(message),
+    "_blank"
+  );
 }
 </script>
 
