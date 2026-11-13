@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIYAN - Custom Shopping Store</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080808;color:white;font-family:Arial,sans-serif}
+header{background:#111;padding:18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #c9a23f}
+.logo{font-size:27px;font-weight:bold;color:#d6ad46;letter-spacing:3px}
+.cart{color:#d6ad46;font-weight:bold}
+nav{display:flex;gap:20px;overflow:auto;padding:14px;background:#171717}
+nav a{color:white;text-decoration:none;white-space:nowrap}
+.hero{text-align:center;padding:65px 18px;background:linear-gradient(140deg,#171717,#30240c)}
+.hero h1{font-size:38px;color:#e2bd60;margin:0 0 15px}
+.hero p{color:#ddd;line-height:1.6}
+.btn{display:inline-block;background:#d6ad46;color:#080808;padding:13px 24px;border:0;border-radius:5px;font-weight:bold;text-decoration:none;margin-top:12px}
+section{padding:25px 16px}
+h2{color:#d6ad46}
+.categories,.products{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+.category,.product{background:#171717;border:1px solid #604c20;border-radius:9px;padding:17px;text-align:center}
+.category{color:#f0d48a}
+.product .photo{font-size:55px;padding:15px}
+.product h3{margin:8px 0}
+.price{color:#e2bd60;font-weight:bold}
+.product button{background:#d6ad46;border:0;padding:10px 14px;border-radius:5px;font-weight:bold}
+.studio{background:#171717;border:1px solid #d6ad46;padding:22px;border-radius:10px;text-align:center}
+footer{text-align:center;padding:25px;background:#151515;color:#aaa;line-height:1.8}
+footer a{color:#d6ad46}
+@media(min-width:700px){.categories,.products{grid-template-columns:repeat(4,1fr)}.hero{padding:90px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">DIYAN</div>
+  <div class="cart">🛒 Cart: <span id="count">0</span></div>
+</header>
+
+<nav>
+  <a href="#home">Home</a>
+  <a href="#categories">Categories</a>
+  <a href="#products">Products</a>
+  <a href="#studio">Custom Design</a>
+  <a href="#contact">Contact</a>
+</nav>
+
+<div class="hero" id="home">
+  <h1>CREATE YOUR STYLE</h1>
+  <p>Shop Unique Products. Design Your Own Style.<br>Welcome to DIYAN Custom Store.</p>
+  <a class="btn" href="#products">SHOP NOW</a>
+</div>
+
+<section id="categories">
+  <h2>Our Categories</h2>
+  <div class="categories">
+    <div class="category">👕<br>Clothing</div>
+    <div class="category">👟<br>Shoes</div>
+    <div class="category">🍳<br>Kitchen</div>
+    <div class="category">📱<br>Electronics</div>
+    <div class="category">🏠<br>Home Decor</div>
+    <div class="category">🎁<br>Gifts</div>
+    <div class="category">🧢<br>Accessories</div>
+    <div class="category">🖨️<br>Custom DTF</div>
+  </div>
+</section>
+
+<section id="products">
+  <h2>Popular Products</h2>
+  <div class="products">
+    <div class="product">
+      <div class="photo">👕</div>
+      <h3>Custom T-Shirt</h3>
+      <p class="price">Starting ₹299</p>
+      <button onclick="addCart()">Add to Cart</button>
+    </div>
+    <div class="product">
+      <div class="photo">🧥</div>
+      <h3>Custom Hoodie</h3>
+      <p class="price">Starting ₹599</p>
+      <button onclick="addCart()">Add to Cart</button>
+    </div>
+    <div class="product">
+      <div class="photo">🧢</div>
+      <h3>Custom Cap</h3>
+      <p class="price">Starting ₹199</p>
+      <button onclick="addCart()">Add to Cart</button>
+    </div>
+    <div class="product">
+      <div class="photo">👜</div>
+      <h3>Custom Bag</h3>
+      <p class="price">Starting ₹249</p>
+      <button onclick="addCart()">Add to Cart</button>
+    </div>
+  </div>
+</section>
+
+<section id="studio">
+  <div class="studio">
+    <h2>DIYAN Custom Design Studio</h2>
+    <p>Choose a template or create your own design.</p>
+    <p>Upload your photo, logo or artwork and personalize your product.</p>
+    <p>360° 3D product preview is planned for the next development stage.</p>
+    <a class="btn" href="https://wa.me/918000138852?text=I%20want%20a%20custom%20design">Request Custom Design</a>
+  </div>
+</section>
+
+<section id="contact">
+  <h2>Contact DIYAN</h2>
+  <p>WhatsApp: +91 8000138852</p>
+  <p>Instagram: <a href="https://www.instagram.com/dilkhushkumarsaini52/" style="color:#d6ad46">Visit Instagram</a></p>
+  <p>Facebook: <a href="https://www.facebook.com/share/1CwAPGfpAU/" style="color:#d6ad46">Visit Facebook</a></p>
+  <p>YouTube: <a href="https://youtube.com/shorts/HYZv7DKottA?si=4hoVmbj6nIlXiazh" style="color:#d6ad46">Watch YouTube</a></p>
+</section>
+
+<footer>
+  © 2026 DIYAN. All Rights Reserved.<br>
+  Your Style, Your Design, Your DIYAN.
+</footer>
+
+<script>
+let cartCount=0;
+function addCart(){
+  cartCount++;
+  document.getElementById("count").textContent=cartCount;
+  alert("Product added to demo cart!");
+}
+</script>
+</body>
+</html>
