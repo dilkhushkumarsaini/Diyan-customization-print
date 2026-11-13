@@ -167,8 +167,7 @@ footer a{color:#d6ad46}
   © 2026 DIYAN. All Rights Reserved.<br>
   Your Style, Your Design, Your DIYAN.
 </footer>
-
-<script>
+script>
 let cart = [];
 
 function toggleCart(){
@@ -271,19 +270,7 @@ function checkout(){
   message += "\nPlease confirm my order.";
 
   let url = "https://wa.me/918000138852?text=" +
-    encodeURIComponent(message);
-
-  window.open(url,"_blank");
-}
-
-function copyUPI(){
-  navigator.clipboard.writeText("7891306081-2@okbizaxis")
-    .then(()=>alert("UPI ID Copied"))
-    .catch(()=>alert("UPI ID: 7891306081-2@okbizaxis"));
-}
-
-renderCart();
-</script>
+    
 
 </body>
 </html>
