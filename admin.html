@@ -1,178 +1,248 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DIYAN Admin Panel</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#080808;color:white;font-family:Arial;padding:18px}
-h1,h2{color:#d6ad46}
-.box{background:#171717;border:1px solid #80652a;border-radius:10px;padding:18px;margin:15px 0}
-input{width:100%;padding:13px;margin:8px 0;background:#222;color:white;border:1px solid #80652a;border-radius:5px}
-button{padding:12px 17px;background:#d6ad46;color:#080808;border:0;border-radius:5px;font-weight:bold;margin:5px;cursor:pointer}
-.order{border-bottom:1px solid #665124;padding:13px 0;overflow-wrap:anywhere}
-.small{color:#bbb;font-size:13px}
-#message{padding:12px;display:none;border-radius:5px}
+body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif;padding:16px}
+.wrap{max-width:900px;margin:auto}
+h1{color:#f5c542}
+.card{background:#181818;border:1px solid #333;border-radius:12px;padding:16px;margin:14px 0}
+input{width:100%;padding:12px;margin:7px 0;background:#090909;color:white;border:1px solid #555;border-radius:7px}
+button{padding:11px 14px;border:0;border-radius:7px;background:#f5c542;color:#111;font-weight:bold;margin:5px 4px 5px 0}
+button.red{background:#d94343;color:white}
+button.gray{background:#444;color:white}
+.small{color:#aaa;font-size:13px}
+.item{border-top:1px solid #444;padding:12px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row input{flex:1;min-width:120px}
+.hidden{display:none}
+#message{color:#f5c542;white-space:pre-wrap}
+table{width:100%;border-collapse:collapse}
+td,th{padding:9px;border-bottom:1px solid #444;text-align:left;font-size:13px}
+.tablewrap{overflow-x:auto}
 </style>
 </head>
 <body>
+<div class="wrap">
+<h1>DIYAN Admin Panel</h1>
+<p class="small">अपने स्टोर के Products, Orders और Sales मैनेज करें।</p>
 
-<h1>DIYAN ADMIN</h1>
-<p>Secure Store Management</p>
-
-<div class="box">
-<h2>Admin Login</h2>
-<input type="password" id="token" placeholder="Enter ADMIN_TOKEN">
+<div class="card" id="loginBox">
+<h3>Admin Login</h3>
+<input id="password" type="password" placeholder="ADMIN_PASSWORD डालें">
 <button onclick="login()">Login</button>
-<button onclick="logout()">Logout</button>
+<p id="loginMessage" class="small"></p>
 </div>
 
-<div id="dashboard" style="display:none">
-
-<div class="box">
-<h2>Product Price Manager</h2>
-
-<label>Product</label>
-<select id="product" style="width:100%;padding:12px;background:#222;color:white">
-<option>Custom T-Shirt</option>
-<option>Custom Hoodie</option>
-<option>Custom Cap</option>
-<option>Custom Bag</option>
-</select>
-
-<label>New Price (₹)</label>
-<input type="number" id="price" placeholder="Enter new price">
-<button onclick="updatePrice()">Update Price</button>
+<div id="panel" class="hidden">
+<div class="card">
+<h3>Dashboard</h3>
+<div class="row">
+<div>कुल Orders: <b id="totalOrders">0</b></div>
+<div>Paid Orders: <b id="paidOrders">0</b></div>
+<div>Pending Orders: <b id="pendingOrders">0</b></div>
+<div>Total Sales: ₹<b id="totalSales">0</b></div>
+</div>
+<button onclick="loadAll()">Refresh</button>
+<button class="gray" onclick="logout()">Logout</button>
 </div>
 
-<div class="box">
-<h2>All Orders</h2>
-<button onclick="loadOrders()">Refresh Orders</button>
-<div id="orders">Please load orders.</div>
+<div class="card">
+<h3>नया Product जोड़ें</h3>
+<input id="newName" placeholder="Product का नाम">
+<input id="newPrice" type="number" min="1" placeholder="कीमत (₹)">
+<button onclick="addProduct()">Add Product</button>
 </div>
 
+<div class="card">
+<h3>Products और कीमत बदलें</h3>
+<div id="products">Loading...</div>
 </div>
 
-<div id="message"></div>
+<div class="card">
+<h3>Orders</h3>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Order ID</th><th>Amount</th><th>Status</th><th>Payment ID</th><th>Date</th></tr></thead>
+<tbody id="orders"><tr><td colspan="5">Loading...</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+<p id="message"></p>
+</div>
 
 <script>
-const SERVER =
-"https://diyan-payment-01.dilkhushlalsot7742.workers.dev";
-
+const SERVER = "https://diyan-payment-01.dilkhushlalsot7742.workers.dev";
 let adminToken = "";
 
-function showMessage(message,success){
-  const box = document.getElementById("message");
-  box.style.display = "block";
-  box.style.background = success ? "#164322" : "#512020";
-  box.textContent = message;
+async function api(path, method="GET", body=null){
+  const options = {
+    method,
+    headers: {
+      "Authorization": "Bearer " + adminToken,
+      "Content-Type": "application/json"
+    }
+  };
+  if(body) options.body = JSON.stringify(body);
+
+  const response = await fetch(SERVER + path, options);
+  let data = {};
+  try { data = await response.json(); } catch(e) {}
+  if(!response.ok || data.error) {
+    throw new Error(data.error || "Request failed: " + response.status);
+  }
+  return data;
 }
 
-function login(){
-  const value = document.getElementById("token").value.trim();
-
-  if(!value){
-    showMessage("Please enter ADMIN_TOKEN",false);
+async function login(){
+  const pass = document.getElementById("password").value.trim();
+  if(!pass){
+    document.getElementById("loginMessage").textContent = "Password डालें।";
     return;
   }
-
-  adminToken = value;
-  document.getElementById("dashboard").style.display = "block";
-  loadOrders();
+  adminToken = pass;
+  try{
+    await api("/admin/products");
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("panel").classList.remove("hidden");
+    document.getElementById("message").textContent = "Login सफल!";
+    loadAll();
+  }catch(e){
+    adminToken = "";
+    document.getElementById("loginMessage").textContent = "Login नहीं हुआ: " + e.message;
+  }
 }
 
 function logout(){
   adminToken = "";
-  document.getElementById("token").value = "";
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("orders").textContent = "Logged out";
-  showMessage("Logged out successfully",true);
+  document.getElementById("panel").classList.add("hidden");
+  document.getElementById("loginBox").classList.remove("hidden");
+  document.getElementById("password").value = "";
+  document.getElementById("loginMessage").textContent = "Logout हो गया।";
 }
 
-async function updatePrice(){
-  if(!adminToken) return;
+async function loadAll(){
+  document.getElementById("message").textContent = "डेटा लोड हो रहा है...";
+  try{
+    await Promise.all([loadProducts(), loadOrders(), loadStats()]);
+    document.getElementById("message").textContent = "डेटा अपडेट हो गया।";
+  }catch(e){
+    document.getElementById("message").textContent = "Error: " + e.message;
+  }
+}
 
-  const name = document.getElementById("product").value;
-  const price = Number(document.getElementById("price").value);
+async function loadProducts(){
+  const data = await api("/admin/products");
+  const list = data.products || [];
+  const box = document.getElementById("products");
+  box.innerHTML = "";
 
-  if(!Number.isSafeInteger(price) || price < 1 || price > 100000){
-    showMessage("Enter a valid price",false);
+  if(!list.length){
+    box.textContent = "अभी कोई Product नहीं है।";
     return;
   }
 
+  list.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "item";
+
+    const title = document.createElement("b");
+    title.textContent = p.name + (Number(p.active) === 0 ? " (बंद)" : "");
+    const price = document.createElement("input");
+    price.type = "number";
+    price.min = "1";
+    price.value = p.price;
+    price.placeholder = "कीमत";
+
+    const save = document.createElement("button");
+    save.textContent = "कीमत Save करें";
+    save.onclick = () => updateProduct(p.name, price.value, p.active);
+
+    const toggle = document.createElement("button");
+    toggle.className = "gray";
+    toggle.textContent = Number(p.active) === 0 ? "चालू करें" : "बंद करें";
+    toggle.onclick = () => updateProduct(p.name, price.value, Number(p.active) === 0 ? 1 : 0);
+
+    div.append(title, price, save, toggle);
+    box.appendChild(div);
+  });
+}
+
+async function addProduct(){
+  const name = document.getElementById("newName").value.trim();
+  const price = Number(document.getElementById("newPrice").value);
+  if(!name || !Number.isInteger(price) || price < 1){
+    alert("Product का नाम और सही कीमत डालें।");
+    return;
+  }
   try{
-    const response = await fetch(SERVER + "/admin/product",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer " + adminToken
-      },
-      body:JSON.stringify({name,price})
-    });
+    await api("/admin/products", "POST", {name, price, active:1});
+    document.getElementById("newName").value = "";
+    document.getElementById("newPrice").value = "";
+    await loadProducts();
+    document.getElementById("message").textContent = "Product जोड़ दिया गया।";
+  }catch(e){
+    document.getElementById("message").textContent = "Product नहीं जुड़ा: " + e.message;
+  }
+}
 
-    const data = await response.json();
-
-    if(!response.ok) throw new Error(data.error || "Update failed");
-
-    showMessage("Price updated successfully!",true);
-    document.getElementById("price").value = "";
-
-  }catch(error){
-    showMessage(error.message,false);
+async function updateProduct(name, price, active){
+  price = Number(price);
+  if(!Number.isInteger(price) || price < 1){
+    alert("सही कीमत डालें।");
+    return;
+  }
+  try{
+    await api("/admin/products", "PUT", {name, price, active:Number(active)});
+    await loadProducts();
+    document.getElementById("message").textContent = "Product अपडेट हो गया।";
+  }catch(e){
+    document.getElementById("message").textContent = "Update नहीं हुआ: " + e.message;
   }
 }
 
 async function loadOrders(){
-  if(!adminToken) return;
+  const data = await api("/admin/orders");
+  const list = data.orders || [];
+  const body = document.getElementById("orders");
+  body.innerHTML = "";
 
-  const box = document.getElementById("orders");
-  box.textContent = "Loading orders...";
-
-  try{
-    const response = await fetch(SERVER + "/admin/orders",{
-      headers:{
-        "Authorization":"Bearer " + adminToken
-      }
-    });
-
-    const data = await response.json();
-
-    if(!response.ok) throw new Error(data.error || "Cannot load orders");
-
-    if(!Array.isArray(data.orders) || !data.orders.length){
-      box.textContent = "No orders found.";
-      return;
-    }
-
-    box.innerHTML = "";
-
-    data.orders.forEach(order=>{
-      const item = document.createElement("div");
-      item.className = "order";
-
-      const fields = [
-        ["Order ID",order.id],
-        ["Payment ID",order.payment_id],
-        ["Amount","₹" + order.amount],
-        ["Status",order.status],
-        ["Date",order.created_at]
-      ];
-
-      fields.forEach(([label,value])=>{
-        const line = document.createElement("p");
-        line.textContent = label + ": " + (value ?? "-");
-        item.appendChild(line);
-      });
-
-      box.appendChild(item);
-    });
-
-  }catch(error){
-    box.textContent = error.message;
-    showMessage(error.message,false);
+  if(!list.length){
+    body.innerHTML = '<tr><td colspan="5">अभी कोई Order नहीं है।</td></tr>';
+    return;
   }
+
+  list.forEach(o => {
+    const tr = document.createElement("tr");
+    const values = [
+      o.id || "",
+      "₹" + (Number(o.amount || 0) / 100).toFixed(2),
+      o.status || "",
+      o.payment_id || "-",
+      o.created_at || ""
+    ];
+    values.forEach(v => {
+      const td = document.createElement("td");
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+async function loadStats(){
+  const data = await api("/admin/stats");
+  const s = data.stats || {};
+  document.getElementById("totalOrders").textContent = s.total_orders ?? 0;
+  document.getElementById("paidOrders").textContent = s.paid_orders ?? 0;
+  document.getElementById("pendingOrders").textContent = s.pending_orders ?? 0;
+  document.getElementById("totalSales").textContent =
+    (Number(s.total_sales || 0) / 100).toFixed(2);
 }
 </script>
 </body>
